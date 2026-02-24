@@ -11,30 +11,29 @@ root.resizable(False, False)
 class Snake:
     def __init__(self):
         self.moveDirection = "Right"
+        self.moveCoords = [20, 0]
         self.segments = []
         self.segments.append(canvas.create_rectangle(100, 100, 120, 120, fill="blue", outline="black"))
+    def updateMoveDirection(self, direction):
+        self.moveDirection = direction
+        if direction == "Right":
+            self.moveCoords = [20, 0]
+        if direction == "Left":
+            self.moveCoords = [-20, 0]
+        if direction == "Up":
+            self.moveCoords = [-20, 0]
+        if direction == "Down":
+            self.moveCoords = [20, 0]
     def move(self):
-        print("moved")
-        if self.moveDirection == "Right":
-            canvas.move(self.segments[0], 20, 0)
-        elif self.moveDirection == "Left":
-            canvas.move(self.segments[0], -20, 0)
-        elif self.moveDirection == "Up":
-            canvas.move(self.segments[0], 0, -20)
-        elif self.moveDirection == "Down":
-            canvas.move(self.segments[0], 0, 20)
+        self.segments.insert(0, canvas.create_rectangle(canvas.coords(self.segments[0])[0] + self.moveCoords[0], canvas.coords(self.segments[0])[1] + self.moveCoords[1], canvas.coords(self.segments[0])[2] + self.moveCoords[0], canvas.coords(self.segments[0])[3] + self.moveCoords[1], fill="blue", outline="black")
+        canvas.delete(self.segments[len(self.segments)-1])
 
 snake = Snake()
 
 def key_pressed(event):
-    if event.keysym == "Left":
-        snake.moveDirection = "Left"
-    elif event.keysym == "Right":
-        snake.moveDirection = "Right"
-    elif event.keysym == "Up":
-        snake.moveDirection = "Up"
-    elif event.keysym == "Down":
-        snake.moveDirection = "Down"
+    directions = ["Left", "Right", "Up", "Down"]
+    if event.keysym in directions:
+        self.updateMoveDirection(event.keysym)
 
 root.bind("<Key>", key_pressed)
 
@@ -44,3 +43,4 @@ def schedule_function():
 
 schedule_function()
 root.mainloop()
+
