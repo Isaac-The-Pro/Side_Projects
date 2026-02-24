@@ -17,20 +17,30 @@ class Snake:
         print("moved")
         if self.moveDirection == "Right":
             canvas.move(self.segments[0], 20, 0)
-        elif self.moveDirection =="Left":
+        elif self.moveDirection == "Left":
             canvas.move(self.segments[0], -20, 0)
+        elif self.moveDirection == "Up":
+            canvas.move(self.segments[0], 0, -20)
+        elif self.moveDirection == "Down":
+            canvas.move(self.segments[0], 0, 20)
+
 snake = Snake()
+
 def key_pressed(event):
-    print("Key was pressed")
     if event.keysym == "Left":
-        print("Left arrow pressed")
         snake.moveDirection = "Left"
+    elif event.keysym == "Right":
+        snake.moveDirection = "Right"
+    elif event.keysym == "Up":
+        snake.moveDirection = "Up"
+    elif event.keysym == "Down":
+        snake.moveDirection = "Down"
 
 root.bind("<Key>", key_pressed)
 
 def schedule_function():
     snake.move()
-    root.after(1000, schedule_function)
+    root.after(200, schedule_function)
 
 schedule_function()
 root.mainloop()
