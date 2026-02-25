@@ -8,6 +8,9 @@ class Game:
         self.gridSize = 20
         self.gridWidth = 20
         self.gridHeight = 20
+    def lose(self):
+        print("Game Over. Your score is: " + str(len(snake.segments)))
+        canvas.destroy()
 game = Game()
 
 root = Tk()
@@ -46,6 +49,9 @@ class Snake:
         if not self.hitsApple:
             canvas.delete(self.segments.pop())
         self.hitsApple = False
+        for segment in self.segments:
+            if canvas.coords(segment) == canvas.coords(self.segments[0]) and segment != self.segments[0]:
+                game.lose()
 
 class Apple:
     def __init__(self, startX, startY):
@@ -57,8 +63,8 @@ class Apple:
             x = random.randint(0, game.gridWidth-1)
             y = random.randint(0, game.gridHeight-1)
             for segment in snake.segments:
-                snakeX = canvas.coords(segment)[0]
-                snakeY = canvas.coords(segment)[1]
+                snakeX = (canvas.coords(segment)[0])/game.gridSize
+                snakeY = (canvas.coords(segment)[1])/game.gridSize
                 if snakeX == x and snakeX == y:
                     moveOn = False
         canvas.moveto(self.object, x*game.gridSize-1, y*game.gridSize-1)
@@ -80,4 +86,5 @@ def schedule_function():
 
 schedule_function()
 root.mainloop()
+
 
