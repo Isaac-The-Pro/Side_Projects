@@ -51,8 +51,16 @@ class Apple:
     def __init__(self, startX, startY):
         self.object = canvas.create_rectangle(game.gridSize*startX, game.gridSize*startY, game.gridSize*startX + game.gridSize, game.gridSize*startY + game.gridSize, fill="red", outline="black")
     def move(self):
-        x = random.randint(0, game.gridWidth-1)
-        y = random.randint(0, game.gridHeight-1)
+        moveOn = False
+        while moveOn == False:
+            moveOn = True
+            x = random.randint(0, game.gridWidth-1)
+            y = random.randint(0, game.gridHeight-1)
+            for segment in snake.segments:
+                snakeX = canvas.coords(segment)[0]
+                snakeY = canvas.coords(segment)[1]
+                if snakeX == x and snakeX == y:
+                    moveOn = False
         canvas.moveto(self.object, x*game.gridSize-1, y*game.gridSize-1)
 
 
@@ -72,3 +80,4 @@ def schedule_function():
 
 schedule_function()
 root.mainloop()
+
