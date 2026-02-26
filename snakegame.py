@@ -5,12 +5,12 @@ import random
 
 class Game:
     def __init__(self):
-        self.gridSize = 20
-        self.gridWidth = 20
-        self.gridHeight = 20
+        self.gridSize = 50
+        self.gridWidth = 16
+        self.gridHeight = 16
     def lose(self):
         print("Game Over. Your score is: " + str(len(snake.segments)))
-        canvas.destroy()
+        root.destroy()
 game = Game()
 
 root = Tk()
@@ -23,23 +23,30 @@ root.resizable(False, False)
 class Snake:
     def __init__(self, startX, startY):
         self.moveDirection = "Right"
-        self.moveCoords = [20, 0]
+        self.moveCoords = [game.gridSize, 0]
         self.segments = []
         self.hitsApple = False
         self.segments.append(canvas.create_rectangle(game.gridSize*startX, game.gridSize*startY, game.gridSize*startX + game.gridSize, game.gridSize*startY + game.gridSize, fill="blue", outline="black"))
+        self.canChangeDirection = True
+        self.nextDirection = None
     def updateMoveDirection(self, direction):
-        if direction == "Right" and self.moveDirection != "Left":
-            self.moveCoords = [game.gridSize, 0]
-            self.moveDirection = direction
-        if direction == "Left" and self.moveDirection != "Right":
-            self.moveCoords = [game.gridSize*-1, 0]
-            self.moveDirection = direction
-        if direction == "Up" and self.moveDirection != "Down":
-            self.moveCoords = [0, game.gridSize*-1]
-            self.moveDirection = direction
-        if direction == "Down" and self.moveDirection != "Up":
-            self.moveCoords = [0, game.gridSize]
-            self.moveDirection = direction
+        if self.canChangeDirection:
+            if direction == "Right" and self.moveDirection != "Left":
+                self.moveCoords = [game.gridSize, 0]
+                self.moveDirection = direction
+            if direction == "Left" and self.moveDirection != "Right":
+                self.moveCoords = [game.gridSize*-1, 0]
+                self.moveDirection = direction
+            if direction == "Up" and self.moveDirection != "Down":
+                self.moveCoords = [0, game.gridSize*-1]
+                self.moveDirection = direction
+            if direction == "Down" and self.moveDirection != "Up":
+                self.moveCoords = [0, game.gridSize]
+                self.moveDirection = direction
+            self.nextDirection = None
+        else:
+            self.nextDirection = direction
+        self.canChangeDirection = False
     def move(self):
         self.segments.insert(0, canvas.create_rectangle(canvas.coords(self.segments[0])[0] + self.moveCoords[0], canvas.coords(self.segments[0])[1] + self.moveCoords[1], canvas.coords(self.segments[0])[2] + self.moveCoords[0], canvas.coords(self.segments[0])[3] + self.moveCoords[1], fill="blue", outline="black"))
         for apple in apples:
@@ -52,6 +59,10 @@ class Snake:
         for segment in self.segments:
             if canvas.coords(segment) == canvas.coords(self.segments[0]) and segment != self.segments[0]:
                 game.lose()
+                return
+        coords = canvas.coords(self.segments[0])
+        if coords[0] < 0 or coords[1] < 0 or coords[2] > game.gridWidth*game.gridSize or coords[3] > game.gridHeight*game.gridSize:
+            game.lose()
 
 class Apple:
     def __init__(self, startX, startY):
@@ -65,13 +76,13 @@ class Apple:
             for segment in snake.segments:
                 snakeX = (canvas.coords(segment)[0])/game.gridSize
                 snakeY = (canvas.coords(segment)[1])/game.gridSize
-                if snakeX == x and snakeX == y:
+                if snakeX == x and snakeY == y:
                     moveOn = False
         canvas.moveto(self.object, x*game.gridSize-1, y*game.gridSize-1)
 
 
-snake = Snake(5, 10)
-apples = [Apple(10, 10), Apple(15, 10)]
+snake = Snake(4, 8)
+apples = [Apple(8, 8), Apple(6, 6), Apple(6, 10), Apple(10, 6), Apple(10, 10)]
 
 def key_pressed(event):
     directions = ["Left", "Right", "Up", "Down"]
@@ -81,10 +92,11 @@ def key_pressed(event):
 root.bind("<Key>", key_pressed)
 
 def schedule_function():
+    snake.canChangeDirection = True
     snake.move()
-    root.after(200, schedule_function)
+    if snake.nextDirection:
+        snake.updateMoveDirection(snake.nextDirection)
+    root.after(150, schedule_function)
 
 schedule_function()
 root.mainloop()
-
-
