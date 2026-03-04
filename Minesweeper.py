@@ -1,7 +1,8 @@
 from tkinter import *
 import math
 import random
-
+import sys
+sys.setrecursionlimit(100000000)
 class Game:
     def __init__(self, minesX, minesY, tileWidth):
         self.minesX = minesX
@@ -15,9 +16,9 @@ class Game:
         self.canvas.grid(column=0, row=0, sticky=(N, W, E, S))
         root.resizable(False, False)
         self.tiles = []
-        for x in range(self.minesX):
+        for y in range(self.minesX):
            rowTiles = []
-           for y in range(self.minesY):
+           for x in range(self.minesY):
                rowTiles.append(Tile(x, y, self.tileWidth, self.canvas))
            self.tiles.append(rowTiles)
         self.numOfMines = math.floor(minesX*minesY / 6.4)
@@ -35,8 +36,8 @@ class Game:
             self.canvas.tag_lower(mine.object)
         for row in self.tiles:
             for tile in row:
-                tile.createNumber(self.tiles.index(row), row.index(tile), self.tiles, self.canvas, self.tileWidth)
-                self.canvas.tag_raise(tile)
+                tile.createNumber(row.index(tile), self.tiles.index(row), self.tiles, self.canvas, self.tileWidth)
+                self.canvas.tag_raise(tile.object)
     def leftClick(self, event):
         for row in self.tiles:
             for tile in row:
@@ -54,49 +55,59 @@ class Tile:
        self.object = canvas.create_rectangle(self.realX, self.realY, self.realX + width, self.realY + width, fill="gray", outline="black")
        self.hasMine = False
        self.touchesMines = 0
+       self.clicked=False
     def click(self, canvas):
+        print("tile was clicked: ", self.x, self.y)
         canvas.itemconfig(self.object, state='hidden')
+        self.clicked=True
+        if self.hasMine == True:
+            pass
+        else:
+            self.getSurroundingTiles(self.listX, self.listY, self.tiles)
+            for tile in self.surroundingTiles:
+                if self.numOfMines==0 and tile.clicked==False:
+                    tile.click(canvas)
+    def getSurroundingTiles(self, listX, listY, tiles):
+        self.surroundingTiles = []
+        try:
+            self.surroundingTiles.append(tiles[listY+1][listX])
+        except:
+            pass
+        try: 
+            self.surroundingTiles.append(tiles[listY][listX+1])
+        except:
+            pass
+        try:
+            self.surroundingTiles.append(tiles[listY+1][listX+1])
+        except:
+            pass
+        if listY != 0:
+            self.surroundingTiles.append(tiles[listY-1][listX])
+            try:
+                self.surroundingTiles.append(tiles[listY-1][listX+1])
+            except:
+                pass
+        if listX !=0:
+            self.surroundingTiles.append(tiles[listY][listX-1])
+            try:
+                self.surroundingTiles.append(tiles[listY+1][listX-1])
+            except:
+                pass
+        if listX != 0 and listY!=0:
+            self.surroundingTiles.append(tiles[listY-1][listX-1])
+        return self.surroundingTiles
     def createNumber(self, listX, listY, tiles, canvas, tileWidth):
         self.numOfMines = 0
         if self.hasMine == False:
-            self.surroundingTiles = []
-            try:
-                self.surroundingTiles.append(tiles[listX+1][listY])
-            except:
-                pass
-            try:
-                self.surroundingTiles.append(tiles[listX-1][listY])
-            except:
-                pass
-            try:
-                self.surroundingTiles.append(tiles[listX][listY+1])
-            except:
-                pass
-            try:
-                self.surroundingTiles.append(tiles[listX][listY-1])
-            except:
-                pass
-            try:
-                self.surroundingTiles.append(tiles[listX+1][listY+1])
-            except:
-                pass
-            try:
-                self.surroundingTiles.append(tiles[listX+1][listY-1])
-            except:
-                pass
-            try:
-                self.surroundingTiles.append(tiles[listX-1][listY+1])
-            except:
-                pass
-            try:
-                self.surroundingTiles.append(tiles[listX-1][listX-1])
-            except:
-                pass
+            self.getSurroundingTiles(listX, listY, tiles)
             for tile in self.surroundingTiles:
                 if tile.hasMine == True:
                     self.numOfMines += 1
         if self.numOfMines != 0:
             self.label = canvas.create_text(listX*tileWidth+tileWidth/2, listY*tileWidth+tileWidth/2, text=self.numOfMines)
+        self.listX = listX
+        self.listY = listY
+        self.tiles = tiles
 
 class Mine:
     def __init__(self, x, y, width, canvas):
