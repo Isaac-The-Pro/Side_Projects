@@ -3,7 +3,7 @@ import random
 
 class Game:
     def __init__(self):
-        self.gridSize = 30
+        self.gridSize = 50
         self.gridWidth = 16
         self.gridHeight = 16
         self.squares = []
@@ -83,6 +83,11 @@ class Snake:
             game.lose()
             return
         
+        for segment in self.segments:
+                if canvas.coords(segment) == nextCoords:
+                    game.lose()
+                    return
+
         self.hitsApple = False
         for apple in apples:
             if canvas.coords(apple.object) == nextCoords:
@@ -94,16 +99,18 @@ class Snake:
         self.backMoveCoords = [(canvas.coords(self.segments[len(self.segments) - 2])[0] - canvas.coords(self.segments[len(self.segments) - 1])[0]), (canvas.coords(self.segments[len(self.segments) - 2])[1] - canvas.coords(self.segments[len(self.segments) - 1])[1])]
 
         self.segments.insert(0, canvas.create_oval(canvas.coords(self.segments[0])[0], canvas.coords(self.segments[0])[1], canvas.coords(self.segments[0])[2], canvas.coords(self.segments[0])[3], fill="blue", width=0))
+        self.lines.insert(0, canvas.create_line(canvas.coords(self.segments[0])[0] + game.snakeSize/2, canvas.coords(self.segments[0])[1] + game.snakeSize/2, canvas.coords(self.segments[0 + 1])[0] + game.snakeSize/2, canvas.coords(self.segments[0 + 1])[1] + game.snakeSize/2, width=game.snakeSize, fill="blue"))
 
     def move(self):
         if self.canMove:
             canvas.move(self.segments[0], self.moveCoords[0]/game.framerate, self.moveCoords[1]/game.framerate)
             if not self.hitsApple:
                 canvas.move(self.segments[len(self.segments) - 1], self.backMoveCoords[0]/game.framerate, self.backMoveCoords[1]/game.framerate)
-            for i in range(len(self.lines)):
-                canvas.delete(self.lines.pop()) 
-            for i in range(len(self.segments) - 1):
-                self.lines.append(canvas.create_line(canvas.coords(self.segments[i])[0] + game.snakeSize/2, canvas.coords(self.segments[i])[1] + game.snakeSize/2, canvas.coords(self.segments[i + 1])[0] + game.snakeSize/2, canvas.coords(self.segments[i + 1])[1] + game.snakeSize/2, width=game.snakeSize, fill="blue"))
+            if len(self.lines) > 0: 
+                canvas.delete(self.lines.pop(0))
+            self.lines.insert(0, canvas.create_line(canvas.coords(self.segments[0])[0] + game.snakeSize/2, canvas.coords(self.segments[0])[1] + game.snakeSize/2, canvas.coords(self.segments[0 + 1])[0] + game.snakeSize/2, canvas.coords(self.segments[0 + 1])[1] + game.snakeSize/2, width=game.snakeSize, fill="blue"))
+            canvas.delete(self.lines.pop())
+            self.lines.append(canvas.create_line(canvas.coords(self.segments[len(self.segments) - 2])[0] + game.snakeSize/2, canvas.coords(self.segments[len(self.segments) - 2])[1] + game.snakeSize/2, canvas.coords(self.segments[len(self.segments) - 1])[0] + game.snakeSize/2, canvas.coords(self.segments[len(self.segments) - 1])[1] + game.snakeSize/2, width=game.snakeSize, fill="blue"))
         
     def postMove(self):
         if self.canMove:
@@ -114,11 +121,11 @@ class Snake:
             else:
                 self.appleHit.move()
             
-            for segment in self.segments:
-                if canvas.coords(segment) == canvas.coords(self.segments[0]) and segment != self.segments[0]:
-                    game.lose()
-                    return
-            
+            for i in range(len(self.lines)):
+                canvas.delete(self.lines.pop()) 
+            for i in range(len(self.segments) - 1):
+                self.lines.append(canvas.create_line(canvas.coords(self.segments[i])[0] + game.snakeSize/2, canvas.coords(self.segments[i])[1] + game.snakeSize/2, canvas.coords(self.segments[i + 1])[0] + game.snakeSize/2, canvas.coords(self.segments[i + 1])[1] + game.snakeSize/2, width=game.snakeSize, fill="blue"))
+
 class Apple:
     def __init__(self, startX, startY):
         self.object = canvas.create_oval(game.gridSize*startX + game.snakeGap, game.gridSize*startY + game.snakeGap, game.gridSize*startX + game.gridSize - game.snakeGap, game.gridSize*startY + game.gridSize - game.snakeGap, fill="red", outline="black")
