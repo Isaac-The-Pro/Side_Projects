@@ -50,12 +50,13 @@ class Snake:
     def __init__(self, startX, startY):
         self.moveDirection = None
         self.moveCoords = [game.gridSize, 0]
-        self.segments = []
         self.hitsApple = False
-        self.segments.append(canvas.create_oval(game.gridSize*startX + game.snakeGap, game.gridSize*startY + game.snakeGap, game.gridSize*startX + game.gridSize - game.snakeGap, game.gridSize*startY + game.gridSize - game.snakeGap, fill="blue", width=0))
+        self.segments = [canvas.create_oval(game.gridSize*startX + game.snakeGap, game.gridSize*startY + game.snakeGap, game.gridSize*startX + game.gridSize - game.snakeGap, game.gridSize*startY + game.gridSize - game.snakeGap, fill="blue", width=0)]
         self.canChangeDirection = True
         self.nextDirection = None
         self.lines = []
+        self.backMoveCoords = None
+        self.canMove = False
     def updateMoveDirection(self, direction):
         if self.canChangeDirection:
             if direction == "Right" and self.moveDirection != "Left":
@@ -75,8 +76,8 @@ class Snake:
             self.nextDirection = direction
         self.canChangeDirection = False
     def preMove(self):
+        self.canMove = True
         self.moveCoords = self.nextMoveCoords
-        print(self.moveCoords, self.nextMoveCoords)
         nextCoords = [canvas.coords(self.segments[0])[0] + self.moveCoords[0], canvas.coords(self.segments[0])[1] + self.moveCoords[1], canvas.coords(self.segments[0])[2] + self.moveCoords[0], canvas.coords(self.segments[0])[3] + self.moveCoords[1]]
         if nextCoords[0] < 0 or nextCoords[1] < 0 or nextCoords[2] >game.gridWidth*game.gridSize or nextCoords[3] > game.gridHeight*game.gridSize:
             game.lose()
@@ -95,26 +96,28 @@ class Snake:
         self.segments.insert(0, canvas.create_oval(canvas.coords(self.segments[0])[0], canvas.coords(self.segments[0])[1], canvas.coords(self.segments[0])[2], canvas.coords(self.segments[0])[3], fill="blue", width=0))
 
     def move(self):
-        canvas.move(self.segments[0], self.moveCoords[0]/game.framerate, self.moveCoords[1]/game.framerate)
-        if not self.hitsApple:
-            canvas.move(self.segments[len(self.segments) - 1], self.backMoveCoords[0]/game.framerate, self.backMoveCoords[1]/game.framerate)
-        for i in range(len(self.lines)):
-            canvas.delete(self.lines.pop()) 
-        for i in range(len(self.segments) - 1):
-            self.lines.append(canvas.create_line(canvas.coords(self.segments[i])[0] + game.snakeSize/2, canvas.coords(self.segments[i])[1] + game.snakeSize/2, canvas.coords(self.segments[i + 1])[0] + game.snakeSize/2, canvas.coords(self.segments[i + 1])[1] + game.snakeSize/2, width=game.snakeSize, fill="blue"))
+        if self.canMove:
+            canvas.move(self.segments[0], self.moveCoords[0]/game.framerate, self.moveCoords[1]/game.framerate)
+            if not self.hitsApple:
+                canvas.move(self.segments[len(self.segments) - 1], self.backMoveCoords[0]/game.framerate, self.backMoveCoords[1]/game.framerate)
+            for i in range(len(self.lines)):
+                canvas.delete(self.lines.pop()) 
+            for i in range(len(self.segments) - 1):
+                self.lines.append(canvas.create_line(canvas.coords(self.segments[i])[0] + game.snakeSize/2, canvas.coords(self.segments[i])[1] + game.snakeSize/2, canvas.coords(self.segments[i + 1])[0] + game.snakeSize/2, canvas.coords(self.segments[i + 1])[1] + game.snakeSize/2, width=game.snakeSize, fill="blue"))
         
     def postMove(self):
-        game.squares[int(canvas.coords(self.segments[0])[0]/game.gridSize)][int(canvas.coords(self.segments[0])[1]/game.gridSize)].hasSnake = True
-        if not self.hitsApple:
-            game.squares[int(canvas.coords(self.segments[len(self.segments)-1])[0]/game.gridSize)][int(canvas.coords(self.segments[len(self.segments)-1])[1]/game.gridSize)].hasSnake = False
-            canvas.delete(self.segments.pop())
-        else:
-            self.appleHit.move()
-        
-        for segment in self.segments:
-            if canvas.coords(segment) == canvas.coords(self.segments[0]) and segment != self.segments[0]:
-                game.lose()
-                return
+        if self.canMove:
+            game.squares[int(canvas.coords(self.segments[0])[0]/game.gridSize)][int(canvas.coords(self.segments[0])[1]/game.gridSize)].hasSnake = True
+            if not self.hitsApple:
+                game.squares[int(canvas.coords(self.segments[len(self.segments)-1])[0]/game.gridSize)][int(canvas.coords(self.segments[len(self.segments)-1])[1]/game.gridSize)].hasSnake = False
+                canvas.delete(self.segments.pop())
+            else:
+                self.appleHit.move()
+            
+            for segment in self.segments:
+                if canvas.coords(segment) == canvas.coords(self.segments[0]) and segment != self.segments[0]:
+                    game.lose()
+                    return
             
 class Apple:
     def __init__(self, startX, startY):
