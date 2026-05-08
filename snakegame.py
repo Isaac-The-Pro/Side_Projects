@@ -18,6 +18,7 @@ class Game:
     def lose(self):
         print("Game Over. Your score is: " + str(len(snake.segments) -1))
         root.destroy()
+        return
     def win(self):
         print("You Won!")
         root.destroy()
@@ -164,13 +165,13 @@ def schedule_function():
             snake.preMove()
         if snake.nextDirection:
             snake.updateMoveDirection(snake.nextDirection)
-        if len(snake.segments) == (game.gridHeight*game.gridWidth):
-            game.win()
-            return
     if snake.moveDirection:
         snake.move()
         if game.loops % game.framerate == game.framerate - 1:
             snake.postMove()
+            if len(snake.segments) == (game.gridHeight*game.gridWidth):
+                game.win()
+                return
     game.loops += 1
     if game.loops > game.framerate:
         game.loops = game.loops % game.framerate
